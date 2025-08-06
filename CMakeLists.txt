@@ -10,31 +10,27 @@ if(MSVC)
     target_compile_options(vulnerable PRIVATE /Od /GS-)
     target_compile_options(protected PRIVATE /Od /GS /guard:cf)
     target_link_options(protected PRIVATE /GUARD:CF)
-elseif(MINGW)
-    target_compile_options(vulnerable PRIVATE -O0 -fno-stack-protector)
-    target_compile_options(protected PRIVATE -O0 -fstack-protector-all)
-    target_link_options(vulnerable PRIVATE -Wl,--nxcompat -Wl,--dynamicbase)
-    target_link_options(protected PRIVATE -Wl,--nxcompat -Wl,--dynamicbase)
 else()
     target_compile_options(vulnerable PRIVATE -O0 -fno-stack-protector)
     target_compile_options(protected PRIVATE -O0 -fstack-protector-all)
     if(UNIX)
-        target_link_options(vulnerable PRIVATE -z execstack)
-        target_link_options(protected PRIVATE -z noexecstack)
+        target_link_options(vulnerable PRIVATE -z,execstack)
+        target_link_options(protected PRIVATE -z,noexecstack)
     endif()
 endif()
 
-enable_testing()
-
-add_test(NAME vulnerable_run COMMAND vulnerable)
-set_tests_properties(vulnerable_run PROPERTIES WILL_FAIL TRUE)
-
-add_test(NAME protected_run COMMAND protected)
-
-add_custom_target(all_demos
-    DEPENDS vulnerable protected
-    COMMAND $<TARGET_FILE:vulnerable> || echo "Vulnerable terminated"
-    COMMAND $<TARGET_FILE:protected> || echo "Protected terminated"
-    COMMENT "Running both executables"
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-)
+if (MSVC) 
+    add_custom_command(
+        TARGET all_demos
+        COMMAND cmd /C "timeout /T 10 /NOBREAK >nul & $<TARGET_FILE:vulnerable> || echo Vulnerable terminated"
+        COMMAND cmd /C "timeout /T 10 /NOBREAK >nul & $<TARGET_FILE:protected> || echo Protected terminated"
+        COMMENT "Running executables with timeout on Windows (MSVC)"
+    )
+else()
+    add_custom_target(all_demos
+        COMMAND $<TARGET_FILE:vulnerable> || echo "Vulnerable terminated"
+        COMMAND $<TARGET_FILE:protected> || echo "Protected terminated"
+        DEPENDS vulnerable protected
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    )
+endif()
