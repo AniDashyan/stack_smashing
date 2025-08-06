@@ -33,8 +33,8 @@ add_test(NAME protected_run COMMAND protected)
 
 add_custom_target(all_demos
     DEPENDS vulnerable protected
-    COMMAND ${CMAKE_CURRENT_BINARY_DIR}/vulnerable${CMAKE_EXECUTABLE_SUFFIX} || echo "Vulnerable terminated"
-    COMMAND ${CMAKE_CURRENT_BINARY_DIR}/protected${CMAKE_EXECUTABLE_SUFFIX} || echo "Protected terminated"
+    COMMAND $<TARGET_FILE:vulnerable> || echo "Vulnerable terminated"
+    COMMAND $<TARGET_FILE:protected> || echo "Protected terminated"
     COMMENT "Running both executables"
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
