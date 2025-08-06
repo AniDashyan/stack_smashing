@@ -1,0 +1,83 @@
+name: CMake on multiple platforms
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        build_type: [Release]
+        c_compiler: [gcc, clang, cl]
+        include:
+          - os: windows-latest
+            c_compiler: cl
+            cpp_compiler: cl
+          - os: ubuntu-latest
+            c_compiler: gcc
+            cpp_compiler: g++
+          - os: ubuntu-latest
+            c_compiler: clang
+            cpp_compiler: clang++
+        exclude:
+          - os: windows-latest
+            c_compiler: gcc
+          - os: windows-latest
+            c_compiler: clang
+          - os: ubuntu-latest
+            c_compiler: cl
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set build output directory
+      id: strings
+      shell: bash
+      run: echo "build_output_dir=${{ github.workspace }}/build" >> $GITHUB_OUTPUT
+
+    - name: Configure CMake
+      run: >
+        cmake -B "${{ steps.strings.outputs.build_output_dir }}"
+        -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
+        -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
+        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        -S "${{ github.workspace }}"
+
+    - name: Build
+      run: >
+        cmake --build "${{ steps.strings.outputs.build_output_dir }}"
+        --config ${{ matrix.build_type }}
+
+    - name: Test
+      working-directory: ${{ steps.strings.outputs.build_output_dir }}
+      run: ctest --build-config ${{ matrix.build_type }}
+
+    - name: Run optimization analysis
+      shell: bash
+      run: |
+        cd "${{ steps.strings.outputs.build_output_dir }}"
+        
+        # Run the custom target for optimization analysis
+        if [ "${{ runner.os }}" = "Windows" ]; then
+          cmake --build . --target all_demos --config ${{ matrix.build_type }}
+        else
+          make all_demos
+        fi
+
+    - name: List build artifacts (debug)
+      shell: bash  
+      run: |
+        echo "=== Build directory contents ==="
+        find "${{ steps.strings.outputs.build_output_dir }}" -name "*.exe" -o -name "optimization_test" 2>/dev/null || true
+        echo "=== All files in build directory ==="
+        ls -la "${{ steps.strings.outputs.build_output_dir }}" || true
+        if [ "${{ runner.os }}" = "Windows" ]; then
+          ls -la "${{ steps.strings.outputs.build_output_dir }}/${{ matrix.build_type }}" || true
+        fi
