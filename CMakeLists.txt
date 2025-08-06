@@ -7,15 +7,11 @@ add_executable(vulnerable main.cpp)
 add_executable(protected main.cpp)
 
 if(MSVC)
-    #  no stack protection
     target_compile_options(vulnerable PRIVATE /Od /GS-)
-    #  with stack protection
     target_compile_options(protected PRIVATE /Od /GS /guard:cf)
     target_link_options(protected PRIVATE /GUARD:CF)
 else()
-    #  no stack protector
     target_compile_options(vulnerable PRIVATE -O0 -fno-stack-protector)
-    # with stack protection
     target_compile_options(protected PRIVATE -O0 -fstack-protector-all)
 
     if(UNIX)
@@ -26,20 +22,18 @@ else()
     endif()
 endif()
 
-if(WIN32)
-    # cmd.exe ignores failure with "|| exit /b 0"
-    set(RUN_IGNORE_FAIL cmd /C "$<TARGET_FILE:vulnerable> || exit /b 0")
-else()
-    # bash ignores failure with "|| true"
-    set(RUN_IGNORE_FAIL bash -c "$<TARGET_FILE:vulnerable> || true")
-endif()
+enable_testing()
 
+# Vulnerable test (must fail)
+add_test(NAME vulnerable_run COMMAND vulnerable)
+set_tests_properties(vulnerable_run PROPERTIES WILL_FAIL TRUE)
+
+# Protected test (must pass)
+add_test(NAME protected_run COMMAND protected)
+set_tests_properties(vulnerable_run PROPERTIES WILL_FAIL TRUE)
 
 add_custom_target(all_demos
     DEPENDS vulnerable protected
-    COMMAND ${CMAKE_COMMAND} -E echo "=== Running vulnerable version (expected to crash) ==="
-    COMMAND ${RUN_IGNORE_FAIL}
-    COMMAND ${CMAKE_COMMAND} -E echo "=== Running protected version (should not crash) ==="
-    COMMAND $<TARGET_FILE:protected>
-    COMMENT "Building and running both demos"
+    COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
+    COMMENT "Running both demos via CTest"
 )
