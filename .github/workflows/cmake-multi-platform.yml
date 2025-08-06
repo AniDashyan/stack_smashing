@@ -57,7 +57,7 @@ jobs:
 
     - name: Test
       working-directory: ${{ steps.strings.outputs.build_output_dir }}
-      run: ctest --build-config ${{ matrix.build_type }}
+      run: ctest --build-config ${{ matrix.build_type }} --rerun-failed --output-on-failure
 
     - name: Run optimization analysis
       shell: bash
