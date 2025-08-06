@@ -7,7 +7,6 @@ void vulnerable_function(const char* input) {
     std::cout << "Buffer address: " << (void*)buffer << "\n";
     std::cout << "Input size: " << strlen(input) << " bytes\n";
     
-    // No bounds checking!
     strcpy(buffer, input);
     
     std::cout << "Copied to buffer: " << buffer << "\n";
@@ -15,23 +14,18 @@ void vulnerable_function(const char* input) {
 }
 
 int main() {
-    std::cout << "Stack Smashing\n";
-    
-    // Test 1: Safe input
-    std::cout << "Test 1: Safe Input\n";
+    std::cout << "Stack Smashing Safe Test\n";
     vulnerable_function("Hello");
-    std::cout << "Returns safely\n\n";
+    std::cout << "Returns safely\n";
 
-    // Test 2: Stack Smashing
-    std::cout << "Test 2: Stack Smashing\n";
+    std::cout << "Stack Smashing Overflow Test\n";
     char large_input[100];
     memset(large_input, 'r', 99);
     large_input[99] = '\0';
-    
+
     std::cout << "Attempting large overflow...\n";
     vulnerable_function(large_input);
     std::cout << "Finished large overflow test\n";
 
-    std::cout << "\nProgram finished normally.\n";
     return 0;
 }
