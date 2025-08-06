@@ -1,11 +1,5 @@
 #include <iostream>
 #include <cstring>
-#include <csetjmp>
-
-void secret_function() {
-    std::cout << "secret_function() executed!\n";
-    std::cout << "Stack smashing attack succeeded!\n";
-}
 
 void vulnerable_function(const char* input) {
     char buffer[10];
@@ -22,7 +16,6 @@ void vulnerable_function(const char* input) {
 
 int main() {
     std::cout << "Stack Smashing\n";
-    std::cout << "Secret function at: " << (void*)secret_function << "\n\n";
     
     // Test 1: Safe input
     std::cout << "Test 1: Safe Input\n";
