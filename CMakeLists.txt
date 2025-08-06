@@ -3,8 +3,8 @@ project(stack_smashing)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(vulnerable main.cpp)
-add_executable(protected main.cpp)
+add_executable(vulnerable vulnerable.cpp)
+add_executable(protected protected.cpp)
 
 if(MSVC)
     target_compile_options(vulnerable PRIVATE /Od /GS-)
@@ -31,28 +31,10 @@ set_tests_properties(vulnerable_run PROPERTIES WILL_FAIL TRUE)
 
 add_test(NAME protected_run COMMAND protected)
 
-# Option 1: Simple custom target that just builds both executables
-add_custom_target(build_demos
+add_custom_target(all_demos
     DEPENDS vulnerable protected
-    COMMENT "Building both demo executables"
-)
-
-# Option 2: Custom target that runs executables directly (recommended)
-add_custom_target(run_demos
-    DEPENDS vulnerable protected
-    COMMAND echo "=== Running vulnerable version (expected to crash) ==="
-    COMMAND vulnerable || echo "Vulnerable version crashed as expected"
-    COMMAND echo "=== Running protected version (should complete safely) ==="
-    COMMAND protected
-    COMMENT "Running both demos directly"
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-)
-
-# Option 3: If you still want to use CTest, run tests individually
-add_custom_target(test_demos
-    DEPENDS vulnerable protected
-    COMMAND echo "Running individual tests..."
-    COMMAND ${CMAKE_CTEST_COMMAND} --test-dir ${CMAKE_CURRENT_BINARY_DIR} -R protected_run --output-on-failure || true
-    COMMAND echo "Note: vulnerable test is expected to fail and is not run in this demo"
-    COMMENT "Running tests selectively"
+    COMMAND ${CMAKE_CURRENT_BINARY_DIR}/vulnerable${CMAKE_EXECUTABLE_SUFFIX} || echo "Vulnerable terminated"
+    COMMAND ${CMAKE_CURRENT_BINARY_DIR}/protected${CMAKE_EXECUTABLE_SUFFIX} || echo "Protected terminated"
+    COMMENT "Running both executables"
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
