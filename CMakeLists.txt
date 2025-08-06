@@ -20,10 +20,11 @@ else()
 endif()
 
 if (MSVC) 
-    add_custom_command(
-        TARGET all_demos
+    add_custom_target(all_demos
         COMMAND cmd /C "timeout /T 10 /NOBREAK >nul & $<TARGET_FILE:vulnerable> || echo Vulnerable terminated"
         COMMAND cmd /C "timeout /T 10 /NOBREAK >nul & $<TARGET_FILE:protected> || echo Protected terminated"
+        DEPENDS vulnerable protected
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         COMMENT "Running executables with timeout on Windows (MSVC)"
     )
 else()
