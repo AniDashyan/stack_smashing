@@ -21,8 +21,8 @@ endif()
 
 if (MSVC) 
     add_custom_target(all_demos
-        COMMAND cmd /C "timeout  10  & $<TARGET_FILE:vulnerable> || echo Vulnerable terminated"
-        COMMAND cmd /C "timeout  10  & $<TARGET_FILE:protected> || echo Protected terminated"
+        COMMAND cmd /C "timeout  10  ; $<TARGET_FILE:vulnerable> || echo Vulnerable terminated"
+        COMMAND cmd /C "timeout  10  ; $<TARGET_FILE:protected> || echo Protected terminated"
         DEPENDS vulnerable protected
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         COMMENT "Running executables with timeout on Windows (MSVC)"
