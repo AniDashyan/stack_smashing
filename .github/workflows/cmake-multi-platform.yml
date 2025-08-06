@@ -68,7 +68,7 @@ jobs:
         if [ "${{ runner.os }}" = "Windows" ]; then
           cmake --build . --target all_demos --config ${{ matrix.build_type }}
         else
-          make run_both
+          make all_demos
         fi
 
     - name: List build artifacts (debug)
